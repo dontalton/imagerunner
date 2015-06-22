@@ -1,6 +1,11 @@
 from os import path as bytes
+from imagerunner import utils as creds
 import rados
 import rbd
+import requests
+import yaml
+
+print creds.os_user
 
 
 class Ceph(object):
@@ -17,7 +22,7 @@ class Ceph(object):
         self.cephpool = cephpool
         self.size = bytes.getsize(rawimage)
 
-    def load(self):
+    def load_into_ceph(self):
 
         with rados.Rados(conffile='/etc/ceph/ceph.conf') as cluster:
             with cluster.open_ioctx(self.cephpool) as ioctx:
@@ -37,7 +42,7 @@ class Ceph(object):
                             image.write(image_buffer, offset)
                             offset = offset + chunk
 
-    def read(self):
+    def read_from_ceph(self):
 
         with rados.Rados(conffile='/etc/ceph/ceph.conf') as cluster:
             with cluster.open_ioctx(self.cephpool) as ioctx:
@@ -54,3 +59,10 @@ class Ceph(object):
                             offset = offset + chunk
                         except rbd.InvalidArgument:
                             break
+
+    def create_cinder_volume(self):
+        pass
+        # get the size of the actual raw image
+        # create cinder volume via api using actual raw image size
+        # use rbd client to delete the cinder-created rbd file
+        # rename the rawimage rbd to whatever the cinder-created uuid name is

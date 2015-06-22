@@ -1,2 +1,0 @@
-class Cinder(object):
-    pass

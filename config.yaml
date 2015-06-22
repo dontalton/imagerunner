@@ -1,0 +1,6 @@
+---
+  openstack:
+      authurl:  'http://192.168.80.128:5000/v2.0/tokens'
+      user:     'admin'
+      password: 'clean'
+      tenant:   'admin'
