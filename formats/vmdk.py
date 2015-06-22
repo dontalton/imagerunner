@@ -1,0 +1,2 @@
+class VMDK(object):
+    pass
