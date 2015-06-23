@@ -1,6 +1,8 @@
 ---
   openstack:
-      authurl:  'http://192.168.80.128:5000/v2.0/tokens'
-      user:     'admin'
-      password: 'clean'
-      tenant:   'admin'
+      authurl:   'http://192.168.80.128:5000/v2.0/tokens'
+      user:      'admin'
+      password:  'clean'
+      tenant:    'admin'
+      tenantid:  '74c65cd9b2fe44f786e3cd5467fd6872'
+      cinderurl: 'http://192.168.80.128:8776/v2/'

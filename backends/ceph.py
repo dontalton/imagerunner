@@ -1,26 +1,22 @@
 from os import path as bytes
-from imagerunner import utils as creds
+import json
 import rados
 import rbd
 import requests
 import yaml
 
-print creds.os_user
-
 
 class Ceph(object):
 
-    # Usage:
-    # ceph = Ceph(rawimage='myimage', metadata='there', cephpool='rbd')
-    # ceph.load()   this sends the file to the cluster
-    # ceph.read()   reads it back from the cluster if you want to check bytes; for testing only
 
-    def __init__(self, rawimage, metadata, cephpool):
+    def __init__(self, rawimage, metadata, cephpool, token):
 
         self.rawimage = rawimage
         self.metadata = metadata
         self.cephpool = cephpool
+        self.token = token
         self.size = bytes.getsize(rawimage)
+        self.creds = yaml.load(open('config.yaml'))
 
     def load_into_ceph(self):
 
@@ -42,7 +38,10 @@ class Ceph(object):
                             image.write(image_buffer, offset)
                             offset = offset + chunk
 
-    def read_from_ceph(self):
+        self._create_cinder_volume()
+
+
+    def _read_from_ceph(self):
 
         with rados.Rados(conffile='/etc/ceph/ceph.conf') as cluster:
             with cluster.open_ioctx(self.cephpool) as ioctx:
@@ -60,9 +59,37 @@ class Ceph(object):
                         except rbd.InvalidArgument:
                             break
 
-    def create_cinder_volume(self):
-        pass
-        # get the size of the actual raw image
+    def _delete_from_ceph(self, volid):
+        with rados.Rados(conffile='/etc/ceph/ceph.conf') as cluster:
+            with cluster.open_ioctx(self.cephpool) as ioctx:
+                block_device = rbd.RBD()
+                block_device.remove(ioctx, volid)
+
+    def _rename_in_ceph(self, src, dest):
+        with rados.Rados(conffile='/etc/ceph/ceph.conf') as cluster:
+            with cluster.open_ioctx(self.cephpool) as ioctx:
+                block_device = rbd.RBD()
+                block_device.rename(ioctx, src, dest)
+
+
+
+    def _create_cinder_volume(self):
+
         # create cinder volume via api using actual raw image size
-        # use rbd client to delete the cinder-created rbd file
-        # rename the rawimage rbd to whatever the cinder-created uuid name is
+        auth = self.creds['openstack']
+        url = auth['cinderurl'] + auth['tenantid'] + '/volumes'
+        headers = {'Content-Type':'application/json', 'X-Auth-Token':self.token}
+        data = {'volume': {'status':'creating', 'size':'1', 'attach_status':'detached', 'bootable':'true'}}
+        r = requests.post(url, headers=headers, data=json.dumps(data))
+        response = r.json()
+        volid = response['volume']['id']
+
+        # flag the cinder volume as bootable
+        booty = {'os-set_bootable':{'bootable':True}}
+        booturl = url + '/' + volid + '/action'
+        s = requests.post(booturl, headers=headers, data=json.dumps(booty))
+
+        # use rbd client to delete the cinder created image, then rename our own
+        self._delete_from_ceph(volid=str(volid)) # ceph wants a string, not unicode
+        self._rename_in_ceph(src=self.rawimage, dest=volid)
+        return
