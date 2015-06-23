@@ -11,3 +11,5 @@ def token():
     r = requests.post(auth['authurl'], data=json.dumps(payload), headers=headers)
     response = json.loads(r.text)
     return response['access']['token']['id']
+
+print token()

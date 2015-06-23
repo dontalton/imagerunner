@@ -7,3 +7,5 @@
       tenant:    'admin'
       tenantid:  '96a61b9e849d41ada3c8a703a0d15fc0'
       cinderurl: 'http://192.168.80.131:8776/v2/'
+  images:
+      source_location: '/var/tmp/'

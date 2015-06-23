@@ -1,9 +1,17 @@
 #!/usr/bin/env python
 
 from utils import *
-from backends import ceph
+from formats import vmdk as image
+from drivers import ceph as storage
+import cinder
 
-creds = yaml.load(open('config.yaml'))
+# if using cinder
+size = image.convert('image')
+target_vol = cinder.create(size)
+driver.load(target_vol)
 
-seff = ceph.Ceph(rawimage='testimage', metadata=None, cephpool='volumes', token=token())
-print seff.load_into_ceph()
+# if using glance
+# blah
+
+# if using nfs
+# blah
