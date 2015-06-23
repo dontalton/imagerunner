@@ -1,4 +1,5 @@
 from os import path as bytes
+from time import sleep
 import json
 import rados
 import rbd
@@ -59,11 +60,11 @@ class Ceph(object):
                         except rbd.InvalidArgument:
                             break
 
-    def _delete_from_ceph(self, volid):
+    def _delete_from_ceph(self, volname):
         with rados.Rados(conffile='/etc/ceph/ceph.conf') as cluster:
             with cluster.open_ioctx(self.cephpool) as ioctx:
                 block_device = rbd.RBD()
-                block_device.remove(ioctx, volid)
+                block_device.remove(ioctx, volname)
 
     def _rename_in_ceph(self, src, dest):
         with rados.Rados(conffile='/etc/ceph/ceph.conf') as cluster:
@@ -83,6 +84,8 @@ class Ceph(object):
         r = requests.post(url, headers=headers, data=json.dumps(data))
         response = r.json()
         volid = response['volume']['id']
+        volpre = 'volume-' + volid
+        volname = str(volpre)
 
         # flag the cinder volume as bootable
         booty = {'os-set_bootable':{'bootable':True}}
@@ -90,6 +93,7 @@ class Ceph(object):
         s = requests.post(booturl, headers=headers, data=json.dumps(booty))
 
         # use rbd client to delete the cinder created image, then rename our own
-        self._delete_from_ceph(volid=str(volid)) # ceph wants a string, not unicode
-        self._rename_in_ceph(src=self.rawimage, dest=volid)
-        return
+        sleep(2)
+        self._delete_from_ceph(volname=volname)
+        sleep(2)
+        self._rename_in_ceph(src=self.rawimage, dest=volname)
