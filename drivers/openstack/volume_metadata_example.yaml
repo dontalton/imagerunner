@@ -1,0 +1,19 @@
+---
+  volume:
+    bootable: True
+    display_name: ''
+    display_description: ''
+    availability_zone: ''
+    metadata:
+      some_key: True
+      some_other_key: 'asdf'
+  image:
+    name:
+    owner:
+    min_disk:
+    min_ram:
+    is_public:
+    is_protected:
+    metadata:
+      some_key: 'foo'
+      some_other_key: 'bar'

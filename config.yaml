@@ -3,8 +3,8 @@
     vmdk:  True
     qcow2: False
     raw:   False
-  image_location:
-    directory: '/var/tmp/'
+  disk_image_location:
+    working_directory: '/var/tmp/'
   enabled_backend_drivers:
     ceph: True
     nfs:  False

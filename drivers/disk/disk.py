@@ -1,7 +1,7 @@
 from os import path as bytes
 
 
-class VMDK(object):
+class Disk(object):
 
     def __init__(self, image):
 
