@@ -18,6 +18,7 @@ class Disk(object):
         return size_in_gb
 
     def convert(self):
+        pass
         # convert image
         # foo = getsize(rawimage)
         # return foo
