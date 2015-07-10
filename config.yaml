@@ -1,18 +1,17 @@
 ---
   enabled_image_drivers:
     vmdk:  True
-    qcow2: True
-    raw:   True
+    qcow2: False
+    raw:   False
   image_location:
     directory: '/var/tmp/'
   enabled_backend_drivers:
     ceph: True
+    nfs:  False
   credentials:
     openstack:
       # Using the admin's creds and tenant for everything. Change at will.
       authurl:   'http://192.168.80.131:5000/v2.0/tokens'
-      user:      'admin'
-      password:  'password'
       tenant:    'admin'
-      tenantid:  '96a61b9e849d41ada3c8a703a0d15fc0'
-      cinderurl: 'http://192.168.80.131:8776/v2/'
+      username:  'admin'
+      password:  'password'
