@@ -1,10 +1,5 @@
 ---
-  enabled_image_drivers:
-    vmdk:  True
-    qcow2: False
-    raw:   False
-  disk_image_location:
-    working_directory: '/var/tmp/'
+  working_directory: '/var/tmp/'
   enabled_backend_drivers:
     ceph: True
     nfs:  False
@@ -15,3 +10,9 @@
       tenant:    'admin'
       username:  'admin'
       password:  'password'
+
+# storage connection information
+  storage:
+    ceph:
+      pool: 'volumes'
+      config: '/etc/ceph/ceph.conf'

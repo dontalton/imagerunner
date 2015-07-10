@@ -1,24 +1,27 @@
 from os import path as bytes
 import rados
 import rbd
+import uuid
+import yaml
 
 
 class CephDriver(object):
 
-    def __init__(self, rawimage, metadata, pool, config='/etc/ceph/ceph.conf', **kwargs):
+    def __init__(self, rawimage, metadata=None):
 
+        self.config = yaml.load(open('config.yaml'))
         self.rawimage = rawimage
         self.metadata = metadata
-        self.pool = pool
+        self.cephpool = self.config['storage']['ceph']['pool']
+        self.cephconf = self.config['storage']['ceph']['config']
         self.size = bytes.getsize(rawimage)
-        self.config = config
-        self.cinder = kwargs['cinder']
+        self.rbdname = uuid.uuid4()
 
     def load(self):
 
         size_in_gb = self.size
 
-        with rados.Rados(conffile=self.config) as cluster:
+        with rados.Rados(conffile=self.cephconf) as cluster:
             with cluster.open_ioctx(self.cephpool) as ioctx:
                 block_device = rbd.RBD()
                 block_device.create(ioctx, self.rawimage, self.size)
@@ -38,7 +41,7 @@ class CephDriver(object):
 
     def read(self):
 
-        with rados.Rados(conffile=self.config) as cluster:
+        with rados.Rados(conffile=self.cephconf) as cluster:
             with cluster.open_ioctx(self.cephpool) as ioctx:
                 with rbd.Image(ioctx, self.rawimage) as image:
                     chunk = 8192
@@ -55,13 +58,13 @@ class CephDriver(object):
                             break
 
     def delete(self, volname):
-        with rados.Rados(conffile=self.config) as cluster:
+        with rados.Rados(conffile=self.cephconf) as cluster:
             with cluster.open_ioctx(self.cephpool) as ioctx:
                 block_device = rbd.RBD()
                 block_device.remove(ioctx, volname)
 
     def rename(self, src, dest):
-        with rados.Rados(conffile=self.config) as cluster:
+        with rados.Rados(conffile=self.cephconf) as cluster:
             with cluster.open_ioctx(self.cephpool) as ioctx:
                 block_device = rbd.RBD()
                 block_device.rename(ioctx, src, dest)
