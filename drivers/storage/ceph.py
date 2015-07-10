@@ -15,7 +15,7 @@ class CephDriver(object):
         self.cephpool = self.config['storage']['ceph']['pool']
         self.cephconf = self.config['storage']['ceph']['config']
         self.size = bytes.getsize(rawimage)
-        self.rbdname = uuid.uuid4()
+        self.rbdname = str(uuid.uuid4())
 
     def load(self):
 
@@ -24,8 +24,8 @@ class CephDriver(object):
         with rados.Rados(conffile=self.cephconf) as cluster:
             with cluster.open_ioctx(self.cephpool) as ioctx:
                 block_device = rbd.RBD()
-                block_device.create(ioctx, self.rawimage, self.size)
-                with rbd.Image(ioctx, self.rawimage) as image:
+                block_device.create(ioctx, self.rbdname, self.size)
+                with rbd.Image(ioctx, self.rbdname) as image:
                     image.lock_exclusive('totallylocked')
                     with open(self.rawimage) as file:
                         chunk = 8192
@@ -39,11 +39,11 @@ class CephDriver(object):
                             image.write(image_buffer, offset)
                             offset = offset + chunk
 
-    def read(self):
+    def _read(self):
 
         with rados.Rados(conffile=self.cephconf) as cluster:
             with cluster.open_ioctx(self.cephpool) as ioctx:
-                with rbd.Image(ioctx, self.rawimage) as image:
+                with rbd.Image(ioctx, self.rbdname) as image:
                     chunk = 8192
                     offset = 0
                     output = open(self.rawimage + '.fromcluster', 'a')

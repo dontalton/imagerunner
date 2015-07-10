@@ -21,9 +21,6 @@ class Disk(object):
         config = yaml.load(open('config.yaml'))
         disk_path = config['working_directory']
 
-
-
-        print "i am converting this file" + file_extension
         rawimage = file_base + '.raw'
         # i should probably create a lock file here, something I can test for in imagerunner.py maybe?
         # like if file.lock then next

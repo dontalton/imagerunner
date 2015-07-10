@@ -22,12 +22,17 @@ while True:
         file = disk_path + file    #naughty
         file_base = os.path.splitext(file)[0]
         file_extension = os.path.splitext(file)[1][1:]
-        print file_base
+
+        # need a test so we can just skip files that are not disk images
+        # right now this just checks for a yaml file for ALL files
+        # we'll also need to check for an existing raw file and delete it if there is no lock
+        # oh, and add lock files too
 
         # make sure the new files haven't been touched for 5+ minutes so we know they're done being uploaded
         if now - os.stat(file).st_mtime > (5 * 60):
             if os.path.isfile(file_base + '.yaml'):
                 try:
+                    print "converting file"
                     foo = disk.Disk() 
                     rawsize = foo.convert(file)
                     rados = ceph.CephDriver(rawimage=file_base + '.raw')
