@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from drivers import disk
+from drivers.openstack import cinder
 from drivers.storage import ceph
 import os
 import sys
@@ -32,15 +33,23 @@ while True:
         if now - os.stat(file).st_mtime > (5 * 60):
             if os.path.isfile(file_base + '.yaml'):
                 try:
-                    print "converting file"
+                    # converting file
                     foo = disk.Disk() 
                     rawsize = foo.convert(file)
+
+                    # put the file into ceph, get a temp uuid name back
                     rados = ceph.CephDriver(rawimage=file_base + '.raw')
-                    rados.load() #I should combine these methods lol
-                    #make_openstack_volume_or_image(rawfile)
-                    #delete(file, rawfile)
-                    #time.sleep('5')
-                    print "file converted"
+                    rbd_name = rados.load()
+
+                    # create a cinder volume that we will attach the rbd to
+                    block_storage = cinder.Cinder(bootable=True, metadata='blah')
+                    cinder_volume = block_storage.create()
+
+                    # delete the volume cinder created, then rename our converted volume to the 
+                    # same name that we just deleted. unfortunately it has to be like this
+                    rados.delete(volname=cinder_volume)
+                    rados.rename(src=rbd_name, dest=cinder_volume)
+                                
                 except:
                     print "hit some error", sys.exc_info()[0]
                     raise
